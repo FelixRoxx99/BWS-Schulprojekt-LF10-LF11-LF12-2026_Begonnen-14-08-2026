@@ -13,8 +13,7 @@
   <property name="windowTitle">
    <string>FrmMain</string>
   </property>
-<<<<<<< HEAD
-  <widget class="QTableView" name="tableView">
+  <widget class="QTableView" name="tblGeraete">
    <property name="geometry">
     <rect>
      <x>370</x>
@@ -24,7 +23,7 @@
     </rect>
    </property>
   </widget>
-  <widget class="QPushButton" name="btnLoadTestData">
+  <widget class="QPushButton" name="btnTestdaten">
    <property name="geometry">
     <rect>
      <x>140</x>
@@ -34,10 +33,10 @@
     </rect>
    </property>
    <property name="text">
-    <string>Gerät Hinzufügen</string>
+    <string>Gerät Hinzufügen (Testdaten)</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="btnAdd">
+  <widget class="QPushButton" name="btnAddGeraet">
    <property name="geometry">
     <rect>
      <x>370</x>
@@ -47,10 +46,10 @@
     </rect>
    </property>
    <property name="text">
-    <string>bearbeiten</string>
+    <string>Gerät hinzufügen</string>
    </property>
   </widget>
-  <widget class="QPushButton" name="pushButton_3">
+  <widget class="QPushButton" name="btnDelete">
    <property name="geometry">
     <rect>
      <x>580</x>
@@ -63,8 +62,6 @@
     <string>löschen</string>
    </property>
   </widget>
-=======
->>>>>>> 79a5cd02d348e4b82d3f0ea836bd85144c6b2334
  </widget>
  <resources/>
  <connections/>

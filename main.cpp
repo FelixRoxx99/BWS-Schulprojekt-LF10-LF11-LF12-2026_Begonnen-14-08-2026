@@ -1,18 +1,12 @@
-<<<<<<< HEAD
 #include <QApplication>
 #include <QSqlDatabase>
 #include <QSqlQuery>
-#include "frmMain.h"
-=======
+#include <QDebug>
 #include "frmmain.h"
-
-#include <QApplication>
->>>>>>> 79a5cd02d348e4b82d3f0ea836bd85144c6b2334
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-<<<<<<< HEAD
 
     // SQLite verbinden
     QSqlDatabase db = QSqlDatabase::addDatabase("QSQLITE");
@@ -41,18 +35,8 @@ int main(int argc, char *argv[])
            "ausleihdatum TEXT,"
            "rueckgabedatum TEXT)");
 
-    // Login anzeigen
-    FrmLogin login;
-    if (login.exec() == QDialog::Accepted) {
-        FrmMain w;
-        w.show();
-        return a.exec();
-    }
-
-    return 0;
-=======
+    // Hauptfenster anzeigen (kein FrmLogin vorhanden)
     FrmMain w;
     w.show();
-    return QApplication::exec();
->>>>>>> 79a5cd02d348e4b82d3f0ea836bd85144c6b2334
+    return a.exec();
 }

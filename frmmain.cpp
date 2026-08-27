@@ -1,18 +1,15 @@
-<<<<<<< HEAD
-#include "frmMain.h"
-#include "frmmain.ui"
-#include <QSqlQuery>
-=======
 #include "frmmain.h"
 #include "ui_frmmain.h"
->>>>>>> 79a5cd02d348e4b82d3f0ea836bd85144c6b2334
+
+#include <QSqlQuery>
+#include <QPushButton>
+#include <QModelIndex>
 
 FrmMain::FrmMain(QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::FrmMain)
 {
     ui->setupUi(this);
-<<<<<<< HEAD
 
     // Geräteübersicht laden
     modelGeraete = new QSqlTableModel(this);
@@ -25,15 +22,12 @@ FrmMain::FrmMain(QWidget *parent)
     connect(ui->btnTestdaten, &QPushButton::clicked, this, &FrmMain::loadTestData);
     connect(ui->btnAddGeraet, &QPushButton::clicked, this, &FrmMain::addGeraet);
     connect(ui->btnDelete, &QPushButton::clicked, this, &FrmMain::deleteGeraet);
-=======
->>>>>>> 79a5cd02d348e4b82d3f0ea836bd85144c6b2334
 }
 
 FrmMain::~FrmMain()
 {
     delete ui;
 }
-<<<<<<< HEAD
 
 void FrmMain::loadTestData()
 {
@@ -58,13 +52,11 @@ void FrmMain::addGeraet()
 
 void FrmMain::deleteGeraet()
 {
-    int row = ui->tblGeraete->currentIndex().row();
+    QModelIndex idx = ui->tblGeraete->currentIndex();
+    int row = idx.row();
     if (row < 0) return;
 
     modelGeraete->removeRow(row);
     modelGeraete->submitAll();
     modelGeraete->select();
 }
-
-=======
->>>>>>> 79a5cd02d348e4b82d3f0ea836bd85144c6b2334
