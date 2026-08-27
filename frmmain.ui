@@ -16,17 +16,17 @@
   <widget class="QTableView" name="tblGeraete">
    <property name="geometry">
     <rect>
-     <x>370</x>
-     <y>200</y>
-     <width>256</width>
-     <height>192</height>
+     <x>70</x>
+     <y>100</y>
+     <width>651</width>
+     <height>351</height>
     </rect>
    </property>
   </widget>
   <widget class="QPushButton" name="btnTestdaten">
    <property name="geometry">
     <rect>
-     <x>140</x>
+     <x>70</x>
      <y>480</y>
      <width>171</width>
      <height>61</height>
@@ -39,7 +39,7 @@
   <widget class="QPushButton" name="btnAddGeraet">
    <property name="geometry">
     <rect>
-     <x>370</x>
+     <x>320</x>
      <y>480</y>
      <width>161</width>
      <height>61</height>
