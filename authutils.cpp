@@ -25,10 +25,8 @@ QByteArray hmacSha256(const QByteArray &key, const QByteArray &data){
 }
 
 QByteArray pbkdf2_hmac_sha256(const QByteArray &password, const QByteArray &salt, int iterations, int dkLen){
-    // RFC 2898 PBKDF2
-    int hashLen = 32; // SHA-256 output size
+    int hashLen = 32;
     int l = (dkLen + hashLen - 1) / hashLen;
-    int r = dkLen - (l - 1) * hashLen;
     QByteArray dk;
     for(int i=1;i<=l;i++){
         QByteArray intBlock;
@@ -47,14 +45,8 @@ QByteArray pbkdf2_hmac_sha256(const QByteArray &password, const QByteArray &salt
     return dk.left(dkLen);
 }
 
-QString toHex(const QByteArray &ba){
-    return QString(ba.toHex());
-}
-
-QByteArray fromHex(const QString &hex){
-    return QByteArray::fromHex(hex.toUtf8());
-}
-
+QString toHex(const QByteArray &ba){ return QString(ba.toHex()); }
+QByteArray fromHex(const QString &hex){ return QByteArray::fromHex(hex.toUtf8()); }
 QString sha256Simple(const QString &salt, const QString &password){
     QByteArray input = (salt + password).toUtf8();
     return QString(QCryptographicHash::hash(input, QCryptographicHash::Sha256).toHex());
