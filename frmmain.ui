@@ -1,50 +1,153 @@
-*** Begin Patch
-*** Update File: frmmain.ui
-@@
--     <item>
--      <property name="text">
--       <string>Gerät hinzufügen</string>
--      </property>
--     </item>
-+     <item>
-+      <property name="text">
-+       <string>Gerät hinzufügen</string>
-+      </property>
-+     </item>
-+     <item>
-+      <property name="text">
-+       <string>Ausleihen</string>
-+      </property>
-+     </item>
-@@
-     <widget class="QStackedWidget" name="stackedWidget">
-@@
-     <widget class="QWidget" name="pageAdd">
-@@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>FrmMain</class>
+ <widget class="QWidget" name="FrmMain">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>900</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Geraeteverwaltung</string>
+  </property>
+  <layout class="QHBoxLayout" name="horizontalLayout">
+   <item>
+    <widget class="QListWidget" name="navList">
+     <property name="maximumWidth">
+      <number>200</number>
+     </property>
+     <item>
+      <property name="text">
+       <string>Übersicht</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Gerät hinzufügen</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Ausleihen</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Admin</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item>
+    <widget class="QStackedWidget" name="stackedWidget">
+     <widget class="QWidget" name="pageOverview">
+      <attribute name="title"/>
+      <layout class="QVBoxLayout" name="verticalLayout_overview">
+       <item>
+        <widget class="QTableView" name="tblGeraete"/>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_buttons">
+         <item>
+          <widget class="QPushButton" name="btnTestdaten">
+           <property name="text">
+            <string>Gerät Hinzufügen (Testdaten)</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btnAddGeraet">
+           <property name="text">
+            <string>Gerät hinzufügen</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btnDelete">
+           <property name="text">
+            <string>löschen</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
      </widget>
-+     <widget class="QWidget" name="pageAusleihe">
-+      <layout class="QVBoxLayout" name="verticalLayout_ausleihe">
-+       <item>
-+        <widget class="QTableView" name="tblAusleihe"/>
-+       </item>
-+       <item>
-+        <layout class="QHBoxLayout" name="ausleiheButtons">
-+         <item>
-+          <widget class="QPushButton" name="btnAusleihen">
-+           <property name="text">
-+            <string>Ausleihen</string>
-+           </property>
-+          </widget>
-+         </item>
-+         <item>
-+          <widget class="QPushButton" name="btnRueckgabe">
-+           <property name="text">
-+            <string>Rückgabe</string>
-+           </property>
-+          </widget>
-+         </item>
-+        </layout>
-+       </item>
-+      </layout>
-+     </widget>
-*** End Patch
+     <widget class="QWidget" name="pageAdd">
+      <layout class="QVBoxLayout" name="verticalLayout_add">
+       <item>
+        <widget class="QPushButton" name="btnOpenAddDialog">
+         <property name="text">
+          <string>Neues Gerät erfassen</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="pageAusleihe">
+      <layout class="QVBoxLayout" name="verticalLayout_ausleihe">
+       <item>
+        <widget class="QTableView" name="tblAusleihe"/>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="ausleiheButtons">
+         <item>
+          <widget class="QPushButton" name="btnAusleihen">
+           <property name="text">
+            <string>Ausleihen</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btnRueckgabe">
+           <property name="text">
+            <string>Rückgabe</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="pageAdmin">
+      <layout class="QVBoxLayout" name="verticalLayout_admin">
+       <item>
+        <widget class="QTableView" name="tblBenutzer"/>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="adminButtons">
+         <item>
+          <widget class="QPushButton" name="btnAddUser">
+           <property name="text">
+            <string>Benutzer hinzufügen</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btnEditUser">
+           <property name="text">
+            <string>Bearbeiten</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btnDeleteUser">
+           <property name="text">
+            <string>Benutzer löschen</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
