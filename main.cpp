@@ -60,6 +60,12 @@ int main(int argc, char *argv[])
            "kdf TEXT,"
            "iter INTEGER)");
 
+    // add approved column if missing
+    if(!hasColumn(db, "benutzer", "approved")){
+        QSqlQuery q2(db);
+        q2.exec("ALTER TABLE benutzer ADD COLUMN approved INTEGER DEFAULT 0");
+    }
+
     q.exec("CREATE TABLE IF NOT EXISTS geraete ("
            "id INTEGER PRIMARY KEY AUTOINCREMENT,"
            "name TEXT, typ TEXT, seriennummer TEXT, standort TEXT, status TEXT)");

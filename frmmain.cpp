@@ -14,6 +14,7 @@
 #include <QSqlQueryModel>
 #include <QDateTime>
 #include <QMetaObject>
+#include <QAction>
 
 FrmMain::FrmMain(QWidget *parent)
     : QWidget(parent)
@@ -67,6 +68,12 @@ FrmMain::FrmMain(QWidget *parent)
     connect(ui->btnAddUser, &QPushButton::clicked, this, &FrmMain::on_btnAddUser_clicked);
     connect(ui->btnEditUser, &QPushButton::clicked, this, &FrmMain::on_btnEditUser_clicked);
     connect(ui->btnDeleteUser, &QPushButton::clicked, this, &FrmMain::on_btnDeleteUser_clicked);
+
+    // provide context-action to approve users (appears in right-click menu of user table)
+    QAction *actApprove = new QAction("Freischalten", this);
+    connect(actApprove, &QAction::triggered, this, &FrmMain::on_btnApproveUser_clicked);
+    ui->tblBenutzer->addAction(actApprove);
+    ui->tblBenutzer->setContextMenuPolicy(Qt::ActionsContextMenu);
 
     // Ausleihe buttons
     connect(ui->btnAusleihen, &QPushButton::clicked, this, &FrmMain::on_btnAusleihen_clicked);
@@ -289,6 +296,22 @@ void FrmMain::on_btnDeleteUser_clicked(){
     modelBenutzer->select();
 }
 
+void FrmMain::on_btnApproveUser_clicked(){
+    if(m_role.toLower() != "admin"){
+        QMessageBox::warning(this, "Zugriff verweigert", "Nur Administratoren dürfen Benutzer freischalten.");
+        return;
+    }
+    QModelIndex idx = ui->tblBenutzer->currentIndex();
+    int row = idx.row();
+    if(row < 0) return;
+    int id = modelBenutzer->record(row).value("id").toInt();
+    QSqlQuery q;
+    q.prepare("UPDATE benutzer SET approved=1 WHERE id=:id");
+    q.bindValue(":id", id);
+    if(!q.exec()) QMessageBox::critical(this, "Fehler", q.lastError().text());
+    modelBenutzer->select();
+}
+
 void FrmMain::on_btnAusleihen_clicked(){
     // Allow Mitarbeiter and Admin (role != user)
     if(m_role.toLower() == "user"){
@@ -383,7 +406,7 @@ void FrmMain::on_btnRueckgabe_clicked(){
             s.bindValue(":id", gid);
             if(!s.exec() || s.numRowsAffected() == 0) ok = false;
         }
-        if(!ok){ db.rollback(); QMessageBox::critical(this, "Fehler", "Rückgabe konnte nicht durchgeführt werden (konkurrierender Zugriff oder DB-Fehler)."); return; }
+        if(!ok){ db.rollback(); QMessageBox::critical(this, "Fehler", "Rückgabe konnte nicht durchgeführt werden (konkurrierender Zugriff oder DB-Fehler).'); return; }
         db.commit();
         modelGeraete->select();
         refreshAusleihe();
