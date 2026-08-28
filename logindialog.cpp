@@ -3,10 +3,11 @@
 #include <QSqlQuery>
 #include <QMessageBox>
 #include <QCryptographicHash>
+#include "authutils.h"
 
 static QString computeHash(const QString &salt, const QString &password){
-    QByteArray input = (salt + password).toUtf8();
-    return QString(QCryptographicHash::hash(input, QCryptographicHash::Sha256).toHex());
+    QByteArray key = AuthUtils::pbkdf2_hmac_sha256(password.toUtf8(), salt.toUtf8(), 100000, 32);
+    return AuthUtils::toHex(key);
 }
 
 LoginDialog::LoginDialog(QWidget *parent): QDialog(parent), ui(new Ui::LoginDialog){

@@ -6,9 +6,7 @@
 #include <QSqlQueryModel>
 
 QT_BEGIN_NAMESPACE
-namespace Ui {
-class FrmMain;
-}
+namespace Ui { class FrmMain; }
 QT_END_NAMESPACE
 
 class FrmMain : public QWidget

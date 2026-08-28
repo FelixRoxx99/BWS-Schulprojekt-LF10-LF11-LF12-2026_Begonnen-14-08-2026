@@ -11,10 +11,10 @@ class UserDialog : public QDialog {
 public:
     explicit UserDialog(QWidget *parent=nullptr);
     ~UserDialog() override;
-    void loadFromRecord(const QSqlRecord &rec);
     QString username() const;
     QString role() const;
-    QString password() const; // may be empty
+    QString password() const;
+    void loadFromRecord(const QSqlRecord &rec);
 private slots:
     void on_btnOk_clicked();
 private:
