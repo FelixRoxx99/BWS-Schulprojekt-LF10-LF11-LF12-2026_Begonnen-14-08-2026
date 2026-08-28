@@ -8,18 +8,23 @@ SOURCES += \
     frmmain.cpp \
     statusdelegate.cpp \
     devicedialog.cpp \
-    logindialog.cpp
+    logindialog.cpp \
+    authutils.cpp \
+    userdialog.cpp
 
 HEADERS += \
     frmmain.h \
     statusdelegate.h \
     devicedialog.h \
-    logindialog.h
+    logindialog.h \
+    authutils.h \
+    userdialog.h
 
 FORMS += \
     frmmain.ui \
     devicedialog.ui \
-    logindialog.ui
+    logindialog.ui \
+    userdialog.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

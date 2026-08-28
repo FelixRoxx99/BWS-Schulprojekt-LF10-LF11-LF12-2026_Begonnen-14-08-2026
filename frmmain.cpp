@@ -2,6 +2,8 @@
 #include "ui_frmmain.h"
 #include "statusdelegate.h"
 #include "devicedialog.h"
+#include "userdialog.h"
+#include "authutils.h"
 
 #include <QSqlQuery>
 #include <QPushButton>
@@ -50,6 +52,11 @@ FrmMain::FrmMain(QWidget *parent)
     connect(ui->btnAddGeraet, &QPushButton::clicked, this, &FrmMain::addGeraet);
     connect(ui->btnDelete, &QPushButton::clicked, this, &FrmMain::deleteGeraet);
     connect(ui->btnOpenAddDialog, &QPushButton::clicked, this, &FrmMain::showAddPage);
+
+    // admin buttons
+    connect(ui->btnAddUser, &QPushButton::clicked, this, &FrmMain::on_btnAddUser_clicked);
+    connect(ui->btnEditUser, &QPushButton::clicked, this, &FrmMain::on_btnEditUser_clicked);
+    connect(ui->btnDeleteUser, &QPushButton::clicked, this, &FrmMain::on_btnDeleteUser_clicked);
 
     // Double click edit
     connect(ui->tblGeraete, &QTableView::doubleClicked, this, &FrmMain::openEditForIndex);
@@ -158,4 +165,89 @@ void FrmMain::openEditForIndex(const QModelIndex &index){
         if(!q.exec()) QMessageBox::critical(this, "Fehler", q.lastError().text());
         modelGeraete->select();
     }
+}
+
+// Admin: add user
+void FrmMain::on_btnAddUser_clicked(){
+    if(m_role.toLower() != "admin"){
+        QMessageBox::warning(this, "Zugriff verweigert", "Nur Administratoren dürfen Benutzer anlegen.");
+        return;
+    }
+    UserDialog dlg(this);
+    if(dlg.exec() == QDialog::Accepted){
+        QString uname = dlg.username();
+        QString role = dlg.role();
+        QString pass = dlg.password();
+        QString salt = AuthUtils::makeSalt();
+        int iter = 100000;
+        QByteArray key = AuthUtils::pbkdf2_hmac_sha256(pass.toUtf8(), salt.toUtf8(), iter, 32);
+        QString hashed = AuthUtils::toHex(key);
+        QSqlQuery q;
+        q.prepare("INSERT INTO benutzer (benutzername, passwort, rolle, salt, kdf, iter) VALUES (:u,:p,:r,:s,:k,:i)");
+        q.bindValue(":u", uname);
+        q.bindValue(":p", hashed);
+        q.bindValue(":r", role);
+        q.bindValue(":s", salt);
+        q.bindValue(":k", "pbkdf2");
+        q.bindValue(":i", iter);
+        if(!q.exec()) QMessageBox::critical(this, "Fehler", q.lastError().text());
+        modelBenutzer->select();
+    }
+}
+
+void FrmMain::on_btnEditUser_clicked(){
+    if(m_role.toLower() != "admin"){
+        QMessageBox::warning(this, "Zugriff verweigert", "Nur Administratoren dürfen Benutzer bearbeiten.");
+        return;
+    }
+    QModelIndex idx = ui->tblBenutzer->currentIndex();
+    int row = idx.row();
+    if(row < 0) return;
+    QSqlRecord rec = modelBenutzer->record(row);
+    UserDialog dlg(this);
+    dlg.loadFromRecord(rec);
+    if(dlg.exec() == QDialog::Accepted){
+        QString uname = dlg.username();
+        QString role = dlg.role();
+        QString pass = dlg.password();
+        QSqlQuery q;
+        if(!pass.isEmpty()){
+            QString salt = AuthUtils::makeSalt();
+            int iter = 100000;
+            QByteArray key = AuthUtils::pbkdf2_hmac_sha256(pass.toUtf8(), salt.toUtf8(), iter, 32);
+            QString hashed = AuthUtils::toHex(key);
+            q.prepare("UPDATE benutzer SET benutzername=:u, rolle=:r, passwort=:p, salt=:s, kdf=:k, iter=:i WHERE id=:id");
+            q.bindValue(":p", hashed);
+            q.bindValue(":s", salt);
+            q.bindValue(":k", "pbkdf2");
+            q.bindValue(":i", iter);
+        } else {
+            q.prepare("UPDATE benutzer SET benutzername=:u, rolle=:r WHERE id=:id");
+        }
+        q.bindValue(":u", uname);
+        q.bindValue(":r", role);
+        q.bindValue(":id", rec.value("id"));
+        if(!q.exec()) QMessageBox::critical(this, "Fehler", q.lastError().text());
+        modelBenutzer->select();
+    }
+}
+
+void FrmMain::on_btnDeleteUser_clicked(){
+    if(m_role.toLower() != "admin"){
+        QMessageBox::warning(this, "Zugriff verweigert", "Nur Administratoren dürfen Benutzer löschen.");
+        return;
+    }
+    QModelIndex idx = ui->tblBenutzer->currentIndex();
+    int row = idx.row();
+    if(row < 0) return;
+    int id = modelBenutzer->record(row).value("id").toInt();
+    if(id == m_userId){
+        QMessageBox::warning(this, "Fehler", "Sie können sich selbst nicht löschen.");
+        return;
+    }
+    QSqlQuery q;
+    q.prepare("DELETE FROM benutzer WHERE id=:id");
+    q.bindValue(":id", id);
+    if(!q.exec()) QMessageBox::critical(this, "Fehler", q.lastError().text());
+    modelBenutzer->select();
 }

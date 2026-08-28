@@ -28,6 +28,11 @@ private slots:
     void onNavChanged(int currentRow);
     void openEditForIndex(const QModelIndex &index);
 
+    // admin slots
+    void on_btnAddUser_clicked();
+    void on_btnEditUser_clicked();
+    void on_btnDeleteUser_clicked();
+
 private:
     Ui::FrmMain *ui;
     QSqlTableModel *modelGeraete;
