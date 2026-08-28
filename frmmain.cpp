@@ -69,10 +69,13 @@ void FrmMain::setCurrentUser(int userId, const QString &role){
         for(int i=0;i<ui->navList->count();++i){
             if(ui->navList->item(i)->text() == "Admin") { ui->navList->item(i)->setHidden(false); break; }
         }
+        // allow editing users
+        ui->tblBenutzer->setEditTriggers(QAbstractItemView::DoubleClicked | QAbstractItemView::SelectedClicked);
     } else {
         for(int i=0;i<ui->navList->count();++i){
             if(ui->navList->item(i)->text() == "Admin") { ui->navList->item(i)->setHidden(true); break; }
         }
+        ui->tblBenutzer->setEditTriggers(QAbstractItemView::NoEditTriggers);
     }
 }
 
@@ -109,6 +112,11 @@ void FrmMain::addGeraet()
 
 void FrmMain::deleteGeraet()
 {
+    if(m_role.toLower() != "admin"){
+        QMessageBox::warning(this, "Zugriff verweigert", "Nur Administratoren dürfen Geräte löschen.");
+        return;
+    }
+
     QModelIndex idx = ui->tblGeraete->currentIndex();
     int row = idx.row();
     if (row < 0) return;
@@ -151,5 +159,3 @@ void FrmMain::openEditForIndex(const QModelIndex &index){
         modelGeraete->select();
     }
 }
-
-// aktueller Stand -27-08-2026 um 18:11 Uhr
