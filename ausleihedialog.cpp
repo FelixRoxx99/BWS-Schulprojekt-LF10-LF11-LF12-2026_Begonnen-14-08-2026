@@ -3,25 +3,20 @@
 #include <QSqlQuery>
 #include <QSqlRecord>
 #include <QMessageBox>
+#include <QSqlQueryModel>
 
 AusleiheDialog::AusleiheDialog(QWidget *parent): QDialog(parent), ui(new Ui::AusleiheDialog){
     ui->setupUi(this);
-    // populate available devices (status = Verfügbar)
-    QSqlQuery q;
-    q.exec("SELECT id, name FROM geraete WHERE status='Verfügbar'");
-    while(q.next()){
-        int id = q.value(0).toInt();
-        QString name = q.value(1).toString();
-        ui->cbGeraet->addItem(name, id);
-    }
-    // populate users
-    QSqlQuery q2;
-    q2.exec("SELECT id, benutzername FROM benutzer");
-    while(q2.next()){
-        int id = q2.value(0).toInt();
-        QString uname = q2.value(1).toString();
-        ui->cbBenutzer->addItem(uname, id);
-    }
+    // use models for comboboxes so the UI updates automatically
+    QSqlQueryModel *modelG = new QSqlQueryModel(this);
+    modelG->setQuery("SELECT id, name FROM geraete WHERE status='Verfügbar'");
+    ui->cbGeraet->setModel(modelG);
+    ui->cbGeraet->setModelColumn(1); // display name
+
+    QSqlQueryModel *modelB = new QSqlQueryModel(this);
+    modelB->setQuery("SELECT id, benutzername FROM benutzer");
+    ui->cbBenutzer->setModel(modelB);
+    ui->cbBenutzer->setModelColumn(1); // display username
 }
 
 AusleiheDialog::~AusleiheDialog(){ delete ui; }
@@ -38,5 +33,18 @@ void AusleiheDialog::on_btnOk_clicked(){
     accept();
 }
 
-int AusleiheDialog::selectedGeraetId() const{ return ui->cbGeraet->currentData().toInt(); }
-int AusleiheDialog::selectedBenutzerId() const{ return ui->cbBenutzer->currentData().toInt(); }
+int AusleiheDialog::selectedGeraetId() const{
+    int idx = ui->cbGeraet->currentIndex();
+    if(idx < 0) return -1;
+    QAbstractItemModel *m = ui->cbGeraet->model();
+    QModelIndex mi = m->index(idx, 0);
+    return m->data(mi).toInt();
+}
+
+int AusleiheDialog::selectedBenutzerId() const{
+    int idx = ui->cbBenutzer->currentIndex();
+    if(idx < 0) return -1;
+    QAbstractItemModel *m = ui->cbBenutzer->model();
+    QModelIndex mi = m->index(idx, 0);
+    return m->data(mi).toInt();
+}

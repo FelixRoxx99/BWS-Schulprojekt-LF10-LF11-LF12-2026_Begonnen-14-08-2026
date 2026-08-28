@@ -43,6 +43,9 @@ private:
     QSqlQueryModel *modelAusleihe;
     int m_userId = -1;
     QString m_role;
+
+    // centralized helper
+    void refreshAusleihe();
 };
 
 #endif // FRMMAIN_H

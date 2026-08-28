@@ -40,16 +40,7 @@ FrmMain::FrmMain(QWidget *parent)
     modelAusleihe = new QSqlQueryModel(this);
     ui->tblAusleihe->setModel(modelAusleihe);
 
-    auto refreshAusleihe = [this]() {
-        QString sql = "SELECT a.id AS ausleihe_id, g.name AS geraet, b.benutzername AS benutzer, a.ausleihdatum, a.rueckgabedatum FROM ausleihe a JOIN geraete g ON a.geraet_id=g.id JOIN benutzer b ON a.benutzer_id=b.id ORDER BY a.ausleihdatum DESC";
-        modelAusleihe->setQuery(sql);
-        modelAusleihe->setHeaderData(0, Qt::Horizontal, "ID");
-        modelAusleihe->setHeaderData(1, Qt::Horizontal, "Gerät");
-        modelAusleihe->setHeaderData(2, Qt::Horizontal, "Benutzer");
-        modelAusleihe->setHeaderData(3, Qt::Horizontal, "Ausleihdatum");
-        modelAusleihe->setHeaderData(4, Qt::Horizontal, "Rückgabedatum");
-        ui->tblAusleihe->resizeColumnsToContents();
-    };
+    // initial load of ausleihe
     refreshAusleihe();
 
     // Styling: Status Delegate
@@ -90,6 +81,23 @@ FrmMain::~FrmMain()
     delete ui;
 }
 
+void FrmMain::refreshAusleihe(){
+    const QString sql =
+        "SELECT a.id AS ausleihe_id, g.name AS geraet, b.benutzername AS benutzer, "
+        "a.ausleihdatum, a.rueckgabedatum "
+        "FROM ausleihe a "
+        "JOIN geraete g ON a.geraet_id = g.id "
+        "JOIN benutzer b ON a.benutzer_id = b.id "
+        "ORDER BY a.ausleihdatum DESC";
+    modelAusleihe->setQuery(sql);
+    modelAusleihe->setHeaderData(0, Qt::Horizontal, "ID");
+    modelAusleihe->setHeaderData(1, Qt::Horizontal, "Gerät");
+    modelAusleihe->setHeaderData(2, Qt::Horizontal, "Benutzer");
+    modelAusleihe->setHeaderData(3, Qt::Horizontal, "Ausleihdatum");
+    modelAusleihe->setHeaderData(4, Qt::Horizontal, "Rückgabedatum");
+    ui->tblAusleihe->resizeColumnsToContents();
+}
+
 void FrmMain::setCurrentUser(int userId, const QString &role){
     m_userId = userId;
     m_role = role;
@@ -121,8 +129,7 @@ void FrmMain::loadTestData()
 
     modelGeraete->select();
     // refresh ausleihe view
-    QString sql = "SELECT a.id AS ausleihe_id, g.name AS geraet, b.benutzername AS benutzer, a.ausleihdatum, a.rueckgabedatum FROM ausleihe a JOIN geraete g ON a.geraet_id=g.id JOIN benutzer b ON a.benutzer_id=b.id ORDER BY a.ausleihdatum DESC";
-    modelAusleihe->setQuery(sql);
+    refreshAusleihe();
 }
 
 void FrmMain::addGeraet()
@@ -165,9 +172,7 @@ void FrmMain::showAddPage(){
     if(dlg.exec() == QDialog::Accepted){
         modelGeraete->select();
         // refresh ausleihe view
-        QString sql = "SELECT a.id AS ausleihe_id, g.name AS geraet, b.benutzername AS benutzer, a.ausleihdatum, a.rueckgabedatum FROM ausleihe a JOIN geraete g ON a.geraet_id=g.id JOIN benutzer b ON a.benutzer_id=b.id ORDER BY a.ausleihdatum DESC";
-        modelAusleihe->setQuery(sql);
-        ui->tblAusleihe->resizeColumnsToContents();
+        refreshAusleihe();
     }
 }
 
@@ -195,9 +200,7 @@ void FrmMain::openEditForIndex(const QModelIndex &index){
         if(!q.exec()) QMessageBox::critical(this, "Fehler", q.lastError().text());
         modelGeraete->select();
         // refresh ausleihe
-        QString sql = "SELECT a.id AS ausleihe_id, g.name AS geraet, b.benutzername AS benutzer, a.ausleihdatum, a.rueckgabedatum FROM ausleihe a JOIN geraete g ON a.geraet_id=g.id JOIN benutzer b ON a.benutzer_id=b.id ORDER BY a.ausleihdatum DESC";
-        modelAusleihe->setQuery(sql);
-        ui->tblAusleihe->resizeColumnsToContents();
+        refreshAusleihe();
     }
 }
 
@@ -335,9 +338,7 @@ void FrmMain::on_btnAusleihen_clicked(){
         }
         db.commit();
         modelGeraete->select();
-        QString sql = "SELECT a.id AS ausleihe_id, g.name AS geraet, b.benutzername AS benutzer, a.ausleihdatum, a.rueckgabedatum FROM ausleihe a JOIN geraete g ON a.geraet_id=g.id JOIN benutzer b ON a.benutzer_id=b.id ORDER BY a.ausleihdatum DESC";
-        modelAusleihe->setQuery(sql);
-        ui->tblAusleihe->resizeColumnsToContents();
+        refreshAusleihe();
     }
 }
 
@@ -385,8 +386,6 @@ void FrmMain::on_btnRueckgabe_clicked(){
         if(!ok){ db.rollback(); QMessageBox::critical(this, "Fehler", "Rückgabe konnte nicht durchgeführt werden (konkurrierender Zugriff oder DB-Fehler)."); return; }
         db.commit();
         modelGeraete->select();
-        QString sql = "SELECT a.id AS ausleihe_id, g.name AS geraet, b.benutzername AS benutzer, a.ausleihdatum, a.rueckgabedatum FROM ausleihe a JOIN geraete g ON a.geraet_id=g.id JOIN benutzer b ON a.benutzer_id=b.id ORDER BY a.ausleihdatum DESC";
-        modelAusleihe->setQuery(sql);
-        ui->tblAusleihe->resizeColumnsToContents();
+        refreshAusleihe();
     }
 }
