@@ -6,62 +6,92 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>800</width>
+    <width>900</width>
     <height>600</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>FrmMain</string>
+   <string>Geraeteverwaltung</string>
   </property>
-  <widget class="QTableView" name="tblGeraete">
-   <property name="geometry">
-    <rect>
-     <x>70</x>
-     <y>100</y>
-     <width>651</width>
-     <height>351</height>
-    </rect>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="btnTestdaten">
-   <property name="geometry">
-    <rect>
-     <x>70</x>
-     <y>480</y>
-     <width>171</width>
-     <height>61</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Gerät Hinzufügen (Testdaten)</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="btnAddGeraet">
-   <property name="geometry">
-    <rect>
-     <x>320</x>
-     <y>480</y>
-     <width>161</width>
-     <height>61</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>Gerät hinzufügen</string>
-   </property>
-  </widget>
-  <widget class="QPushButton" name="btnDelete">
-   <property name="geometry">
-    <rect>
-     <x>580</x>
-     <y>480</y>
-     <width>141</width>
-     <height>61</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>löschen</string>
-   </property>
-  </widget>
+  <layout class="QHBoxLayout" name="horizontalLayout">
+   <item>
+    <widget class="QListWidget" name="navList">
+     <property name="maximumWidth">
+      <number>200</number>
+     </property>
+     <item>
+      <property name="text">
+       <string>Übersicht</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Gerät hinzufügen</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>Admin</string>
+      </property>
+     </item>
+    </widget>
+   </item>
+   <item>
+    <widget class="QStackedWidget" name="stackedWidget">
+     <widget class="QWidget" name="pageOverview">
+      <attribute name="title"/>
+      <layout class="QVBoxLayout" name="verticalLayout_overview">
+       <item>
+        <widget class="QTableView" name="tblGeraete"/>
+       </item>
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_buttons">
+         <item>
+          <widget class="QPushButton" name="btnTestdaten">
+           <property name="text">
+            <string>Gerät Hinzufügen (Testdaten)</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btnAddGeraet">
+           <property name="text">
+            <string>Gerät hinzufügen</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="btnDelete">
+           <property name="text">
+            <string>löschen</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="pageAdd">
+      <layout class="QVBoxLayout" name="verticalLayout_add">
+       <item>
+        <widget class="QPushButton" name="btnOpenAddDialog">
+         <property name="text">
+          <string>Neues Gerät erfassen</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="pageAdmin">
+      <layout class="QVBoxLayout" name="verticalLayout_admin">
+       <item>
+        <widget class="QTableView" name="tblBenutzer"/>
+       </item>
+      </layout>
+     </widget>
+    </widget>
+   </item>
+  </layout>
  </widget>
  <resources/>
  <connections/>

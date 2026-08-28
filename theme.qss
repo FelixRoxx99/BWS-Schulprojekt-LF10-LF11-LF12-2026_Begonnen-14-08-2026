@@ -1,0 +1,5 @@
+QWidget { background: #f6f7fb; font-family: "Segoe UI", Roboto, Arial; }
+QListWidget { background: #ffffff; border: 0; }
+QListWidget::item { padding: 12px; }
+QTableView { background: white; gridline-color: #e7e7ef; }
+QPushButton { background: #ffffff; border: 1px solid #e0e0e6; border-radius: 8px; padding: 8px 14px; }
