@@ -21,28 +21,28 @@ QT_BEGIN_NAMESPACE
 class Ui_FrmMain
 {
 public:
-    QTableView *tableView;
-    QPushButton *btnLoadTestData;
-    QPushButton *btnAdd;
-    QPushButton *pushButton_3;
+    QTableView *tblGeraete;
+    QPushButton *btnTestdaten;
+    QPushButton *btnAddGeraet;
+    QPushButton *btnDelete;
 
     void setupUi(QWidget *FrmMain)
     {
         if (FrmMain->objectName().isEmpty())
             FrmMain->setObjectName("FrmMain");
         FrmMain->resize(800, 600);
-        tableView = new QTableView(FrmMain);
-        tableView->setObjectName("tableView");
-        tableView->setGeometry(QRect(370, 200, 256, 192));
-        btnLoadTestData = new QPushButton(FrmMain);
-        btnLoadTestData->setObjectName("btnLoadTestData");
-        btnLoadTestData->setGeometry(QRect(140, 480, 171, 61));
-        btnAdd = new QPushButton(FrmMain);
-        btnAdd->setObjectName("btnAdd");
-        btnAdd->setGeometry(QRect(370, 480, 161, 61));
-        pushButton_3 = new QPushButton(FrmMain);
-        pushButton_3->setObjectName("pushButton_3");
-        pushButton_3->setGeometry(QRect(580, 480, 141, 61));
+        tblGeraete = new QTableView(FrmMain);
+        tblGeraete->setObjectName("tblGeraete");
+        tblGeraete->setGeometry(QRect(70, 100, 651, 351));
+        btnTestdaten = new QPushButton(FrmMain);
+        btnTestdaten->setObjectName("btnTestdaten");
+        btnTestdaten->setGeometry(QRect(70, 480, 171, 61));
+        btnAddGeraet = new QPushButton(FrmMain);
+        btnAddGeraet->setObjectName("btnAddGeraet");
+        btnAddGeraet->setGeometry(QRect(320, 480, 161, 61));
+        btnDelete = new QPushButton(FrmMain);
+        btnDelete->setObjectName("btnDelete");
+        btnDelete->setGeometry(QRect(580, 480, 141, 61));
 
         retranslateUi(FrmMain);
 
@@ -52,9 +52,9 @@ public:
     void retranslateUi(QWidget *FrmMain)
     {
         FrmMain->setWindowTitle(QCoreApplication::translate("FrmMain", "FrmMain", nullptr));
-        btnLoadTestData->setText(QCoreApplication::translate("FrmMain", "Ger\303\244t Hinzuf\303\274gen", nullptr));
-        btnAdd->setText(QCoreApplication::translate("FrmMain", "bearbeiten", nullptr));
-        pushButton_3->setText(QCoreApplication::translate("FrmMain", "l\303\266schen", nullptr));
+        btnTestdaten->setText(QCoreApplication::translate("FrmMain", "Ger\303\244t Hinzuf\303\274gen (Testdaten)", nullptr));
+        btnAddGeraet->setText(QCoreApplication::translate("FrmMain", "Ger\303\244t hinzuf\303\274gen", nullptr));
+        btnDelete->setText(QCoreApplication::translate("FrmMain", "l\303\266schen", nullptr));
     } // retranslateUi
 
 };

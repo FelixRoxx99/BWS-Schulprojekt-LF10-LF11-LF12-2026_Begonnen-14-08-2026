@@ -60,3 +60,8 @@ void FrmMain::deleteGeraet()
     modelGeraete->submitAll();
     modelGeraete->select();
 }
+
+// aktueller Stand -27-08-2026 um 18:11 Uhr
+
+
+//
