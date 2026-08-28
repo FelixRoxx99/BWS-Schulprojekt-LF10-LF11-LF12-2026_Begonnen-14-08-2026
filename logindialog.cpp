@@ -4,6 +4,8 @@
 #include <QMessageBox>
 #include <QCryptographicHash>
 #include "authutils.h"
+#include "registrationdialog.h"
+#include <QPushButton>
 
 static QString computeHash(const QString &salt, const QString &password){
     QByteArray key = AuthUtils::pbkdf2_hmac_sha256(password.toUtf8(), salt.toUtf8(), 100000, 32);
@@ -12,6 +14,17 @@ static QString computeHash(const QString &salt, const QString &password){
 
 LoginDialog::LoginDialog(QWidget *parent): QDialog(parent), ui(new Ui::LoginDialog){
     ui->setupUi(this);
+
+    // add a Register button next to existing cancel/login if possible
+    QPushButton *btnRegister = new QPushButton("Registrieren", this);
+    btnRegister->setObjectName("btnRegister");
+    // try to insert next to btnCancel if present
+    if(auto *btnCancel = findChild<QPushButton*>("btnCancel")){
+        if(btnCancel->parentWidget() && btnCancel->parentWidget()->layout()){
+            btnCancel->parentWidget()->layout()->addWidget(btnRegister);
+        }
+    }
+    connect(btnRegister, &QPushButton::clicked, this, &LoginDialog::on_btnRegister_clicked);
 }
 
 LoginDialog::~LoginDialog(){ delete ui; }
@@ -23,13 +36,19 @@ void LoginDialog::on_btnLogin_clicked(){
     QString pass = ui->lePassword->text();
     if(user.isEmpty() || pass.isEmpty()){ QMessageBox::warning(this, "Fehler", "Benutzer und Passwort erforderlich"); return; }
     QSqlQuery q;
-    q.prepare("SELECT id, rolle, passwort, salt FROM benutzer WHERE benutzername=:u");
+    q.prepare("SELECT id, rolle, passwort, salt, approved FROM benutzer WHERE benutzername=:u");
     q.bindValue(":u", user);
     if(q.exec() && q.next()){
         int id = q.value(0).toInt();
         QString role = q.value(1).toString();
         QString stored = q.value(2).toString();
         QString salt = q.value(3).toString();
+        int approved = 1;
+        if(q.record().indexOf("approved")>=0) approved = q.value(4).toInt();
+        if(approved != 1){
+            QMessageBox::warning(this, "Login gesperrt", "Ihr Account wurde noch nicht vom Administrator freigeschaltet.");
+            return;
+        }
         QString hashed = computeHash(salt, pass);
         if(hashed == stored){
             m_userId = id;
@@ -39,4 +58,9 @@ void LoginDialog::on_btnLogin_clicked(){
         }
     }
     QMessageBox::warning(this, "Login fehlgeschlagen", "Benutzername oder Passwort falsch");
+}
+
+void LoginDialog::on_btnRegister_clicked(){
+    RegistrationDialog dlg(this);
+    dlg.exec();
 }

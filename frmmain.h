@@ -31,6 +31,7 @@ private slots:
     void on_btnAddUser_clicked();
     void on_btnEditUser_clicked();
     void on_btnDeleteUser_clicked();
+    void on_btnApproveUser_clicked();
 
     // ausleihe slots
     void on_btnAusleihen_clicked();
