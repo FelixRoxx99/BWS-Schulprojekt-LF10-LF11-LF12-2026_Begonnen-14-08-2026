@@ -15,6 +15,7 @@
 #include <QDateTime>
 #include <QMetaObject>
 #include <QAction>
+#include <QLabel>
 
 FrmMain::FrmMain(QWidget *parent)
     : QWidget(parent)
@@ -22,7 +23,9 @@ FrmMain::FrmMain(QWidget *parent)
 {
     ui->setupUi(this);
 
-    // Geräteübersicht laden
+    // ============================================
+    // GERÄTEÜBERSICHT - Modell initialisieren
+    // ============================================
     modelGeraete = new QSqlTableModel(this);
     modelGeraete->setTable("geraete");
     modelGeraete->select();
@@ -31,55 +34,82 @@ FrmMain::FrmMain(QWidget *parent)
     ui->tblGeraete->setSelectionBehavior(QAbstractItemView::SelectRows);
     ui->tblGeraete->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
-    // Benutzer-Modell (für Admin-Seite)
+    // ============================================
+    // BENUTZER-MODELL (für Admin-Seite)
+    // ============================================
     modelBenutzer = new QSqlTableModel(this);
     modelBenutzer->setTable("benutzer");
+    // Verstecke Passwort-Spalten
+    modelBenutzer->setHeaderData(2, Qt::Horizontal, "***Passwort***");
+    modelBenutzer->setHeaderData(4, Qt::Horizontal, "***Salt***");
+    modelBenutzer->setHeaderData(5, Qt::Horizontal, "***KDF***");
     modelBenutzer->select();
     ui->tblBenutzer->setModel(modelBenutzer);
 
-    // Ausleih-History
+    // ============================================
+    // AUSLEIH-HISTORY - Modell initialisieren
+    // ============================================
     modelAusleihe = new QSqlQueryModel(this);
     ui->tblAusleihe->setModel(modelAusleihe);
 
     // initial load of ausleihe
     refreshAusleihe();
 
-    // Styling: Status Delegate
+    // ============================================
+    // STATUS-SPALTE: Custom Delegate für farbliche Darstellung
+    // ============================================
     int statusCol = -1;
-    for(int c=0;c<modelGeraete->columnCount();++c){
-        if(modelGeraete->headerData(c, Qt::Horizontal).toString().toLower().contains("status")) { statusCol = c; break; }
+    for(int c=0; c<modelGeraete->columnCount(); ++c){
+        if(modelGeraete->headerData(c, Qt::Horizontal).toString().toLower().contains("status")) {
+            statusCol = c;
+            break;
+        }
     }
-    if(statusCol>=0) ui->tblGeraete->setItemDelegateForColumn(statusCol, new StatusDelegate(this));
+    if(statusCol >= 0) {
+        ui->tblGeraete->setItemDelegateForColumn(statusCol, new StatusDelegate(this));
+    }
 
     // Hide id column for overview
-    if(modelGeraete->columnCount()>0) ui->tblGeraete->setColumnHidden(0, true);
+    if(modelGeraete->columnCount() > 0) {
+        ui->tblGeraete->setColumnHidden(0, true);
+    }
 
-    // Navigation
+    // ============================================
+    // NAVIGATION - Menu-Item Connections
+    // ============================================
     connect(ui->navList, &QListWidget::currentRowChanged, this, &FrmMain::onNavChanged);
     ui->navList->setCurrentRow(0);
 
-    // Buttons
+    // ============================================
+    // BUTTONS: Überblick-Seite
+    // ============================================
     connect(ui->btnTestdaten, &QPushButton::clicked, this, &FrmMain::loadTestData);
     connect(ui->btnAddGeraet, &QPushButton::clicked, this, &FrmMain::addGeraet);
     connect(ui->btnDelete, &QPushButton::clicked, this, &FrmMain::deleteGeraet);
     connect(ui->btnOpenAddDialog, &QPushButton::clicked, this, &FrmMain::showAddPage);
 
-    // admin buttons
+    // ============================================
+    // BUTTONS: Admin-Seite
+    // ============================================
     connect(ui->btnAddUser, &QPushButton::clicked, this, &FrmMain::on_btnAddUser_clicked);
     connect(ui->btnEditUser, &QPushButton::clicked, this, &FrmMain::on_btnEditUser_clicked);
     connect(ui->btnDeleteUser, &QPushButton::clicked, this, &FrmMain::on_btnDeleteUser_clicked);
 
-    // provide context-action to approve users (appears in right-click menu of user table)
+    // Context-Action für Benutzer-Freischaltung (Rechtsklick)
     QAction *actApprove = new QAction("Freischalten", this);
     connect(actApprove, &QAction::triggered, this, &FrmMain::on_btnApproveUser_clicked);
     ui->tblBenutzer->addAction(actApprove);
     ui->tblBenutzer->setContextMenuPolicy(Qt::ActionsContextMenu);
 
-    // Ausleihe buttons
+    // ============================================
+    // BUTTONS: Ausleihe-Seite
+    // ============================================
     connect(ui->btnAusleihen, &QPushButton::clicked, this, &FrmMain::on_btnAusleihen_clicked);
-    connect(ui->btnRueckgabe, &QPushButton::clicked, this, &FrmMain::on_btnRueckgabe_clicked);
+    connect(ui->btnRueckgabe, &QPushButton::clicked, this, &FrmMain::on_btnRueckgaba_clicked);
 
-    // Double click edit
+    // ============================================
+    // DOUBLE-CLICK: Geräte bearbeiten
+    // ============================================
     connect(ui->tblGeraete, &QTableView::doubleClicked, this, &FrmMain::openEditForIndex);
 }
 
@@ -88,6 +118,116 @@ FrmMain::~FrmMain()
     delete ui;
 }
 
+// ============================================
+// KERNFUNKTION: Rollen-basierte UI-Anpassung
+// ============================================
+void FrmMain::setCurrentUser(int userId, const QString &role){
+    m_userId = userId;
+    m_role = role;
+    
+    qDebug() << "➜ setCurrentUser aufgerufen: userId=" << userId << "role=" << role;
+
+    // ============================================
+    // 1. NUTZER (einfacher Mitarbeiter - READ-ONLY)
+    // ============================================
+    if(role.toLower() == "nutzer") {
+        qDebug() << "➜ Konfiguriere UI für NUTZER (Read-Only)";
+        
+        // Navigation: Nur "Übersicht" erlaubt
+        for(int i=0; i<ui->navList->count(); ++i){
+            QString text = ui->navList->item(i)->text();
+            if(text == "Übersicht") {
+                ui->navList->item(i)->setHidden(false);
+            } else {
+                ui->navList->item(i)->setHidden(true);
+            }
+        }
+        
+        // Buttons verstecken
+        ui->btnTestdaten->setHidden(true);      // Testdaten
+        ui->btnAddGeraet->setHidden(true);      // Gerät hinzufügen
+        ui->btnDelete->setHidden(true);         // Löschen
+        ui->btnOpenAddDialog->setHidden(true);  // Gerät erfassen
+        
+        // Admin-UI komplett verstecken
+        ui->tblBenutzer->setEditTriggers(QAbstractItemView::NoEditTriggers);
+        ui->btnAddUser->setHidden(true);
+        ui->btnEditUser->setHidden(true);
+        ui->btnDeleteUser->setHidden(true);
+        
+        // Ausleihe-Buttons verstecken
+        ui->btnAusleihen->setHidden(true);
+        ui->btnRueckgaba->setHidden(true);
+    }
+    
+    // ============================================
+    // 2. MITARBEITER (Ausleihe/Rückgabe erlaubt)
+    // ============================================
+    else if(role.toLower() == "mitarbeiter") {
+        qDebug() << "➜ Konfiguriere UI für MITARBEITER (Ausleihe erlaubt)";
+        
+        // Navigation: "Übersicht" + "Ausleihen" erlaubt
+        for(int i=0; i<ui->navList->count(); ++i){
+            QString text = ui->navList->item(i)->text();
+            if(text == "Übersicht" || text == "Ausleihen") {
+                ui->navList->item(i)->setHidden(false);
+            } else {
+                ui->navList->item(i)->setHidden(true);
+            }
+        }
+        
+        // Geräteverwaltungs-Buttons verstecken
+        ui->btnTestdaten->setHidden(true);      // Testdaten
+        ui->btnAddGeraet->setHidden(true);      // Gerät hinzufügen (Mitarbeiter NICHT)
+        ui->btnDelete->setHidden(true);         // Löschen (Nur Admin)
+        ui->btnOpenAddDialog->setHidden(true);  // Gerät erfassen (Nur Admin)
+        
+        // Admin-UI komplett verstecken
+        ui->tblBenutzer->setEditTriggers(QAbstractItemView::NoEditTriggers);
+        ui->btnAddUser->setHidden(true);
+        ui->btnEditUser->setHidden(true);
+        ui->btnDeleteUser->setHidden(true);
+        
+        // Ausleihe-Buttons SICHTBAR
+        ui->btnAusleihen->setHidden(false);
+        ui->btnRueckgaba->setHidden(false);
+    }
+    
+    // ============================================
+    // 3. ADMINISTRATOR (volle Kontrolle)
+    // ============================================
+    else if(role.toLower() == "admin") {
+        qDebug() << "➜ Konfiguriere UI für ADMIN (volle Rechte)";
+        
+        // Navigation: ALLES sichtbar
+        for(int i=0; i<ui->navList->count(); ++i){
+            ui->navList->item(i)->setHidden(false);
+        }
+        
+        // Geräteverwaltungs-Buttons ALLE SICHTBAR
+        ui->btnTestdaten->setHidden(false);      // Testdaten
+        ui->btnAddGeraet->setHidden(false);      // Gerät hinzufügen
+        ui->btnDelete->setHidden(false);         // Löschen
+        ui->btnOpenAddDialog->setHidden(false);  // Gerät erfassen
+        
+        // Admin-Buttons SICHTBAR + editierbar
+        ui->btnAddUser->setHidden(false);
+        ui->btnEditUser->setHidden(false);
+        ui->btnDeleteUser->setHidden(false);
+        ui->tblBenutzer->setEditTriggers(QAbstractItemView::DoubleClicked | QAbstractItemView::SelectedClicked);
+        
+        // Ausleihe-Buttons SICHTBAR
+        ui->btnAusleihen->setHidden(false);
+        ui->btnRueckgaba->setHidden(false);
+    } 
+    else {
+        qWarning() << "⚠ Unbekannte Rolle:" << role;
+    }
+}
+
+// ============================================
+// AUSLEIHE-HISTORY: Refresh Funktion
+// ============================================
 void FrmMain::refreshAusleihe(){
     const QString sql =
         "SELECT a.id AS ausleihe_id, g.name AS geraet, b.benutzername AS benutzer, "
@@ -105,25 +245,9 @@ void FrmMain::refreshAusleihe(){
     ui->tblAusleihe->resizeColumnsToContents();
 }
 
-void FrmMain::setCurrentUser(int userId, const QString &role){
-    m_userId = userId;
-    m_role = role;
-    // show/hide admin nav
-    if(role.toLower()=="admin"){
-        // ensure admin page visible
-        for(int i=0;i<ui->navList->count();++i){
-            if(ui->navList->item(i)->text() == "Admin") { ui->navList->item(i)->setHidden(false); break; }
-        }
-        // allow editing users
-        ui->tblBenutzer->setEditTriggers(QAbstractItemView::DoubleClicked | QAbstractItemView::SelectedClicked);
-    } else {
-        for(int i=0;i<ui->navList->count();++i){
-            if(ui->navList->item(i)->text() == "Admin") { ui->navList->item(i)->setHidden(true); break; }
-        }
-        ui->tblBenutzer->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    }
-}
-
+// ============================================
+// GERÄTE: Test-Daten laden
+// ============================================
 void FrmMain::loadTestData()
 {
     QSqlQuery q;
@@ -135,13 +259,20 @@ void FrmMain::loadTestData()
            "VALUES ('Beamer-05', 'Beamer', 'BMR500789', 'Konferenzraum', 'Defekt')");
 
     modelGeraete->select();
-    // refresh ausleihe view
     refreshAusleihe();
+    QMessageBox::information(this, "Erfolg", "Test-Daten hinzugefügt");
 }
 
+// ============================================
+// GERÄTE: Neues Gerät hinzufügen
+// ============================================
 void FrmMain::addGeraet()
 {
-    // öffne DeviceDialog
+    if(m_role.toLower() != "admin"){
+        QMessageBox::warning(this, "Zugriff verweigert", "Nur Administratoren dürfen Geräte hinzufügen.");
+        return;
+    }
+
     DeviceDialog dlg(this);
     if(dlg.exec() == QDialog::Accepted){
         auto d = dlg.deviceData();
@@ -152,11 +283,18 @@ void FrmMain::addGeraet()
         q.bindValue(":s", d.serial);
         q.bindValue(":st", d.location);
         q.bindValue(":stt", d.status);
-        if(!q.exec()) QMessageBox::critical(this, "Fehler", q.lastError().text());
-        modelGeraete->select();
+        if(!q.exec()) {
+            QMessageBox::critical(this, "Fehler", q.lastError().text());
+        } else {
+            QMessageBox::information(this, "Erfolg", "Gerät hinzugefügt");
+            modelGeraete->select();
+        }
     }
 }
 
+// ============================================
+// GERÄTE: Gerät löschen (Nur Admin)
+// ============================================
 void FrmMain::deleteGeraet()
 {
     if(m_role.toLower() != "admin"){
@@ -166,32 +304,59 @@ void FrmMain::deleteGeraet()
 
     QModelIndex idx = ui->tblGeraete->currentIndex();
     int row = idx.row();
-    if (row < 0) return;
+    if (row < 0) {
+        QMessageBox::warning(this, "Auswahl", "Bitte ein Gerät auswählen.");
+        return;
+    }
 
-    modelGeraete->removeRow(row);
-    modelGeraete->submitAll();
-    modelGeraete->select();
+    if(QMessageBox::question(this, "Bestätigung", "Gerät wirklich löschen?") == QMessageBox::Yes){
+        modelGeraete->removeRow(row);
+        if(!modelGeraete->submitAll()){
+            QMessageBox::critical(this, "Fehler", "Gerät konnte nicht gelöscht werden");
+        } else {
+            QMessageBox::information(this, "Erfolg", "Gerät gelöscht");
+            modelGeraete->select();
+            refreshAusleihe();
+        }
+    }
 }
 
+// ============================================
+// GERÄTE: Dialog zum Hinzufügen
+// ============================================
 void FrmMain::showAddPage(){
-    // open DeviceDialog
+    if(m_role.toLower() != "admin"){
+        QMessageBox::warning(this, "Zugriff verweigert", "Nur Administratoren dürfen Geräte erfassen.");
+        return;
+    }
+
     DeviceDialog dlg(this);
     if(dlg.exec() == QDialog::Accepted){
         modelGeraete->select();
-        // refresh ausleihe view
         refreshAusleihe();
     }
 }
 
+// ============================================
+// NAVIGATION: Seiten umschalten
+// ============================================
 void FrmMain::onNavChanged(int currentRow){
     ui->stackedWidget->setCurrentIndex(currentRow);
 }
 
+// ============================================
+// GERÄTE: Bearbeiten (Double-Click)
+// ============================================
 void FrmMain::openEditForIndex(const QModelIndex &index){
+    if(m_role.toLower() != "admin"){
+        QMessageBox::warning(this, "Zugriff verweigert", "Nur Administratoren dürfen Geräte bearbeiten.");
+        return;
+    }
+
     if(!index.isValid()) return;
     int row = index.row();
-    int id = modelGeraete->data(modelGeraete->index(row,0)).toInt();
-    // load data into dialog
+    int id = modelGeraete->data(modelGeraete->index(row, 0)).toInt();
+    
     DeviceDialog dlg(this);
     dlg.loadFromRecord(modelGeraete->record(row));
     if(dlg.exec() == QDialog::Accepted){
@@ -204,14 +369,19 @@ void FrmMain::openEditForIndex(const QModelIndex &index){
         q.bindValue(":st", d.location);
         q.bindValue(":stt", d.status);
         q.bindValue(":id", id);
-        if(!q.exec()) QMessageBox::critical(this, "Fehler", q.lastError().text());
-        modelGeraete->select();
-        // refresh ausleihe
-        refreshAusleihe();
+        if(!q.exec()) {
+            QMessageBox::critical(this, "Fehler", q.lastError().text());
+        } else {
+            QMessageBox::information(this, "Erfolg", "Gerät aktualisiert");
+            modelGeraete->select();
+            refreshAusleihe();
+        }
     }
 }
 
-// Admin: add user
+// ============================================
+// ADMIN: Benutzer hinzufügen
+// ============================================
 void FrmMain::on_btnAddUser_clicked(){
     if(m_role.toLower() != "admin"){
         QMessageBox::warning(this, "Zugriff verweigert", "Nur Administratoren dürfen Benutzer anlegen.");
@@ -227,18 +397,26 @@ void FrmMain::on_btnAddUser_clicked(){
         QByteArray key = AuthUtils::pbkdf2_hmac_sha256(pass.toUtf8(), salt.toUtf8(), iter, 32);
         QString hashed = AuthUtils::toHex(key);
         QSqlQuery q;
-        q.prepare("INSERT INTO benutzer (benutzername, passwort, rolle, salt, kdf, iter) VALUES (:u,:p,:r,:s,:k,:i)");
+        q.prepare("INSERT INTO benutzer (benutzername, passwort, rolle, salt, kdf, iter, approved) VALUES (:u,:p,:r,:s,:k,:i,:a)");
         q.bindValue(":u", uname);
         q.bindValue(":p", hashed);
         q.bindValue(":r", role);
         q.bindValue(":s", salt);
         q.bindValue(":k", "pbkdf2");
         q.bindValue(":i", iter);
-        if(!q.exec()) QMessageBox::critical(this, "Fehler", q.lastError().text());
-        modelBenutzer->select();
+        q.bindValue(":a", 1);  // Automatisch freigeschalten
+        if(!q.exec()) {
+            QMessageBox::critical(this, "Fehler", q.lastError().text());
+        } else {
+            QMessageBox::information(this, "Erfolg", "Benutzer hinzugefügt");
+            modelBenutzer->select();
+        }
     }
 }
 
+// ============================================
+// ADMIN: Benutzer bearbeiten
+// ============================================
 void FrmMain::on_btnEditUser_clicked(){
     if(m_role.toLower() != "admin"){
         QMessageBox::warning(this, "Zugriff verweigert", "Nur Administratoren dürfen Benutzer bearbeiten.");
@@ -246,7 +424,10 @@ void FrmMain::on_btnEditUser_clicked(){
     }
     QModelIndex idx = ui->tblBenutzer->currentIndex();
     int row = idx.row();
-    if(row < 0) return;
+    if(row < 0) {
+        QMessageBox::warning(this, "Auswahl", "Bitte einen Benutzer auswählen.");
+        return;
+    }
     QSqlRecord rec = modelBenutzer->record(row);
     UserDialog dlg(this);
     dlg.loadFromRecord(rec);
@@ -271,11 +452,18 @@ void FrmMain::on_btnEditUser_clicked(){
         q.bindValue(":u", uname);
         q.bindValue(":r", role);
         q.bindValue(":id", rec.value("id"));
-        if(!q.exec()) QMessageBox::critical(this, "Fehler", q.lastError().text());
-        modelBenutzer->select();
+        if(!q.exec()) {
+            QMessageBox::critical(this, "Fehler", q.lastError().text());
+        } else {
+            QMessageBox::information(this, "Erfolg", "Benutzer aktualisiert");
+            modelBenutzer->select();
+        }
     }
 }
 
+// ============================================
+// ADMIN: Benutzer löschen
+// ============================================
 void FrmMain::on_btnDeleteUser_clicked(){
     if(m_role.toLower() != "admin"){
         QMessageBox::warning(this, "Zugriff verweigert", "Nur Administratoren dürfen Benutzer löschen.");
@@ -283,19 +471,31 @@ void FrmMain::on_btnDeleteUser_clicked(){
     }
     QModelIndex idx = ui->tblBenutzer->currentIndex();
     int row = idx.row();
-    if(row < 0) return;
+    if(row < 0) {
+        QMessageBox::warning(this, "Auswahl", "Bitte einen Benutzer auswählen.");
+        return;
+    }
     int id = modelBenutzer->record(row).value("id").toInt();
     if(id == m_userId){
         QMessageBox::warning(this, "Fehler", "Sie können sich selbst nicht löschen.");
         return;
     }
-    QSqlQuery q;
-    q.prepare("DELETE FROM benutzer WHERE id=:id");
-    q.bindValue(":id", id);
-    if(!q.exec()) QMessageBox::critical(this, "Fehler", q.lastError().text());
-    modelBenutzer->select();
+    if(QMessageBox::question(this, "Bestätigung", "Benutzer wirklich löschen?") == QMessageBox::Yes){
+        QSqlQuery q;
+        q.prepare("DELETE FROM benutzer WHERE id=:id");
+        q.bindValue(":id", id);
+        if(!q.exec()) {
+            QMessageBox::critical(this, "Fehler", q.lastError().text());
+        } else {
+            QMessageBox::information(this, "Erfolg", "Benutzer gelöscht");
+            modelBenutzer->select();
+        }
+    }
 }
 
+// ============================================
+// ADMIN: Benutzer freischalten (Rechtsklick)
+// ============================================
 void FrmMain::on_btnApproveUser_clicked(){
     if(m_role.toLower() != "admin"){
         QMessageBox::warning(this, "Zugriff verweigert", "Nur Administratoren dürfen Benutzer freischalten.");
@@ -308,13 +508,20 @@ void FrmMain::on_btnApproveUser_clicked(){
     QSqlQuery q;
     q.prepare("UPDATE benutzer SET approved=1 WHERE id=:id");
     q.bindValue(":id", id);
-    if(!q.exec()) QMessageBox::critical(this, "Fehler", q.lastError().text());
-    modelBenutzer->select();
+    if(!q.exec()) {
+        QMessageBox::critical(this, "Fehler", q.lastError().text());
+    } else {
+        QMessageBox::information(this, "Erfolg", "Benutzer freigeschaltet");
+        modelBenutzer->select();
+    }
 }
 
+// ============================================
+// AUSLEIHE: Gerät ausleihen (Mitarbeiter + Admin)
+// ============================================
 void FrmMain::on_btnAusleihen_clicked(){
-    // Allow Mitarbeiter and Admin (role != user)
-    if(m_role.toLower() == "user"){
+    // Nur Mitarbeiter und Admin dürfen Geräte ausleihen
+    if(m_role.toLower() == "nutzer"){
         QMessageBox::warning(this, "Zugriff verweigert", "Nur Mitarbeiter oder Administratoren dürfen Geräte ausleihen.");
         return;
     }
@@ -324,7 +531,7 @@ void FrmMain::on_btnAusleihen_clicked(){
         int uid = dlg.selectedBenutzerId();
         if(gid <= 0 || uid <= 0) return;
         QSqlQuery q;
-        // check status
+        // Check: ist Gerät verfügbar?
         q.prepare("SELECT status FROM geraete WHERE id=:id");
         q.bindValue(":id", gid);
         if(q.exec() && q.next()){
@@ -334,7 +541,7 @@ void FrmMain::on_btnAusleihen_clicked(){
                 return;
             }
         }
-        // use transaction to avoid race conditions
+        // Transaktion für Datenkonsistenz
         QSqlDatabase db = QSqlDatabase::database();
         if(!db.transaction()){
             QMessageBox::critical(this, "Fehler", "Konnte keine DB-Transaktion starten.");
@@ -360,13 +567,18 @@ void FrmMain::on_btnAusleihen_clicked(){
             return;
         }
         db.commit();
+        QMessageBox::information(this, "Erfolg", "Gerät ausgeliehen");
         modelGeraete->select();
         refreshAusleihe();
     }
 }
 
-void FrmMain::on_btnRueckgabe_clicked(){
-    if(m_role.toLower() == "user"){
+// ============================================
+// AUSLEIHE: Gerät zurückgeben (Mitarbeiter + Admin)
+// ============================================
+void FrmMain::on_btnRueckgaba_clicked(){
+    // Nur Mitarbeiter und Admin dürfen Rückgaben durchführen
+    if(m_role.toLower() == "nutzer"){
         QMessageBox::warning(this, "Zugriff verweigert", "Nur Mitarbeiter oder Administratoren dürfen Rückgaben durchführen.");
         return;
     }
@@ -376,19 +588,19 @@ void FrmMain::on_btnRueckgabe_clicked(){
         return;
     }
     int row = idx.row();
-    int ausleiheId = modelAusleihe->data(modelAusleihe->index(row,0)).toInt();
-    QString rueck = modelAusleihe->data(modelAusleihe->index(row,4)).toString();
+    int ausleiheId = modelAusleihe->data(modelAusleihe->index(row, 0)).toInt();
+    QString rueck = modelAusleihe->data(modelAusleihe->index(row, 4)).toString();
     if(!rueck.isEmpty()){
         QMessageBox::information(this, "Rückgabe", "Dieses Gerät wurde bereits zurückgegeben.");
         return;
     }
-    // find geraet_id for this ausleihe
+    // Gerät-ID für diese Ausleihe holen
     QSqlQuery q;
     q.prepare("SELECT geraet_id FROM ausleihe WHERE id=:id");
     q.bindValue(":id", ausleiheId);
     if(q.exec() && q.next()){
         int gid = q.value(0).toInt();
-        // transaction for return
+        // Transaktion für Rückgabe
         QSqlDatabase db = QSqlDatabase::database();
         if(!db.transaction()){
             QMessageBox::critical(this, "Fehler", "Konnte keine DB-Transaktion starten.");
@@ -406,8 +618,13 @@ void FrmMain::on_btnRueckgabe_clicked(){
             s.bindValue(":id", gid);
             if(!s.exec() || s.numRowsAffected() == 0) ok = false;
         }
-        if(!ok){ db.rollback(); QMessageBox::critical(this, "Fehler", "Rückgabe konnte nicht durchgeführt werden (konkurrierender Zugriff oder DB-Fehler).'); return; }
+        if(!ok){
+            db.rollback();
+            QMessageBox::critical(this, "Fehler", "Rückgabe konnte nicht durchgeführt werden (konkurrierender Zugriff oder DB-Fehler).");
+            return;
+        }
         db.commit();
+        QMessageBox::information(this, "Erfolg", "Gerät zurückgegeben");
         modelGeraete->select();
         refreshAusleihe();
     }
