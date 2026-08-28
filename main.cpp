@@ -7,6 +7,8 @@
 #include <QFile>
 #include <QCryptographicHash>
 #include <QUuid>
+#include <QScreen>
+#include <QGuiApplication>
 
 static QString hashPassword(const QString &salt, const QString &password){
     QByteArray input = (salt + password).toUtf8();
@@ -108,6 +110,19 @@ int main(int argc, char *argv[])
 
     // Show login dialog
     LoginDialog login;
+    // center and activate the dialog so it appears in front of all windows
+    QScreen *screen = QGuiApplication::primaryScreen();
+    if(screen){
+        QRect sg = screen->availableGeometry();
+        login.adjustSize();
+        QPoint center = sg.center() - QPoint(login.width()/2, login.height()/2);
+        login.move(center);
+    }
+    login.setModal(true);
+    login.setWindowModality(Qt::ApplicationModal);
+    login.raise();
+    login.activateWindow();
+
     if(login.exec() != QDialog::Accepted){
         return 0;
     }
