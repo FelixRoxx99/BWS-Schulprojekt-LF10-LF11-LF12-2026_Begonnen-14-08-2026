@@ -17,7 +17,7 @@ Wichtige Implementierungsdetails
 - GUI: Hauptfenster verwendet Navigation (QListWidget) + QStackedWidget; es gibt DeviceDialog für Erfassen/Bearbeiten, eine Admin-Seite für Benutzer.
 - Styling: Einfache QSS-Datei (theme.qss) und farbige Status-Badges (StatusDelegate) sind enthalten.
 
-Was noch verbessert werden kann (Empfehlungen)
+Was noch verbessert werden kann 
 
 - Password Hashing: In einer produktiven Umgebung sollte ein stärkeren KDF (bcrypt/argon2) verwendet werden. Qt bietet hierfür keine eingebaute Funktion; externe Bibliothek empfohlen.
 - Benutzerverwaltung (Admin-Page): aktuell grundlegend; weitere Funktionen wie Benutzer anlegen/löschen sollten über Dialoge ergänzt werden.
