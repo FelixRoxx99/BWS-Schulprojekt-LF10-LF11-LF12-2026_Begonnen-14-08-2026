@@ -99,7 +99,7 @@ int main(int argc, char *argv[])
         return 1;
     }
     
-    qDebug() << "✓ Datenbankverbindung hergestellt";
+    qDebug() << "✓ Datenbankverbindung hergestellt (" << db.databaseName() << ")";
     
     // Foreign Keys aktivieren
     QSqlQuery pragma(db);
@@ -175,11 +175,14 @@ int main(int argc, char *argv[])
     // ============================================
     // SCHRITT 5: LOGIN-DIALOG anzeigen
     // ============================================
+    qDebug() << "DEBUG: Vor dem Öffnen des Login-Dialogs";
     LoginDialog loginDlg;
+    qDebug() << "DEBUG: LoginDialog erstellt";
     if(loginDlg.exec() != QDialog::Accepted) {
         qDebug() << "Login abgebrochen";
         return 0;  // Benutzer hat Abgebrochen → Programm beenden
     }
+    qDebug() << "DEBUG: Login akzeptiert - Benutzer ID=" << loginDlg.userId() << " Rolle=" << loginDlg.role();
     
     // ============================================
     // SCHRITT 6: Hauptfenster anzeigen (NUR nach erfolgreichem Login)
