@@ -9,12 +9,14 @@ AusleiheDialog::AusleiheDialog(QWidget *parent): QDialog(parent), ui(new Ui::Aus
     ui->setupUi(this);
     // use models for comboboxes so the UI updates automatically
     QSqlQueryModel *modelG = new QSqlQueryModel(this);
-    modelG->setQuery("SELECT id, name FROM geraete WHERE status='Verfügbar'");
+    // robust gegen Groß-/Kleinschreibung und verschiedene Status-Formate
+    modelG->setQuery("SELECT id, name FROM geraete WHERE lower(status) LIKE 'verfügbar%';");
     ui->cbGeraet->setModel(modelG);
     ui->cbGeraet->setModelColumn(1); // display name
 
     QSqlQueryModel *modelB = new QSqlQueryModel(this);
-    modelB->setQuery("SELECT id, benutzername FROM benutzer");
+    // nur freigeschaltete Benutzer anzeigen
+    modelB->setQuery("SELECT id, benutzername FROM benutzer WHERE approved=1");
     ui->cbBenutzer->setModel(modelB);
     ui->cbBenutzer->setModelColumn(1); // display username
 }
