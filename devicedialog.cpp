@@ -34,5 +34,9 @@ void DeviceDialog::on_btnOk_clicked(){
         QMessageBox::warning(this, "Validierung", "Name ist Pflicht");
         return;
     }
+    if(ui->leSerial->text().trimmed().isEmpty()){
+        QMessageBox::warning(this, "Validierung", "Seriennummer ist Pflicht");
+        return;
+    }
     accept();
 }
