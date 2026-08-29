@@ -16,9 +16,6 @@
   <layout class="QHBoxLayout" name="horizontalLayout">
    <item>
     <widget class="QListWidget" name="navList">
-     <property name="maximumWidth">
-      <number>200</number>
-     </property>
      <item>
       <property name="text">
        <string>Übersicht</string>
@@ -44,7 +41,6 @@
    <item>
     <widget class="QStackedWidget" name="stackedWidget">
      <widget class="QWidget" name="pageOverview">
-      <attribute name="title"/>
       <layout class="QVBoxLayout" name="verticalLayout_overview">
        <item>
         <widget class="QTableView" name="tblGeraete"/>

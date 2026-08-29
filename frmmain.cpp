@@ -7,15 +7,21 @@
 #include "authutils.h"
 
 #include <QSqlQuery>
+#include <QSqlQueryModel>
+#include <QSqlTableModel>
+#include <QSqlError>
+#include <QSqlRecord>
+#include <QSqlDatabase>
+
 #include <QPushButton>
 #include <QModelIndex>
 #include <QMessageBox>
 #include <QFile>
-#include <QSqlQueryModel>
 #include <QDateTime>
 #include <QMetaObject>
 #include <QAction>
 #include <QLabel>
+#include <QDebug>
 
 FrmMain::FrmMain(QWidget *parent)
     : QWidget(parent)
@@ -105,7 +111,7 @@ FrmMain::FrmMain(QWidget *parent)
     // BUTTONS: Ausleihe-Seite
     // ============================================
     connect(ui->btnAusleihen, &QPushButton::clicked, this, &FrmMain::on_btnAusleihen_clicked);
-    connect(ui->btnRueckgabe, &QPushButton::clicked, this, &FrmMain::on_btnRueckgaba_clicked);
+    connect(ui->btnRueckgabe, &QPushButton::clicked, this, &FrmMain::on_btnRueckgabe_clicked);
 
     // ============================================
     // DOUBLE-CLICK: Geräte bearbeiten
@@ -157,7 +163,7 @@ void FrmMain::setCurrentUser(int userId, const QString &role){
         
         // Ausleihe-Buttons verstecken
         ui->btnAusleihen->setHidden(true);
-        ui->btnRueckgaba->setHidden(true);
+        ui->btnRueckgabe->setHidden(true);
     }
     
     // ============================================
@@ -190,7 +196,7 @@ void FrmMain::setCurrentUser(int userId, const QString &role){
         
         // Ausleihe-Buttons SICHTBAR
         ui->btnAusleihen->setHidden(false);
-        ui->btnRueckgaba->setHidden(false);
+        ui->btnRueckgabe->setHidden(false);
     }
     
     // ============================================
@@ -218,7 +224,7 @@ void FrmMain::setCurrentUser(int userId, const QString &role){
         
         // Ausleihe-Buttons SICHTBAR
         ui->btnAusleihen->setHidden(false);
-        ui->btnRueckgaba->setHidden(false);
+        ui->btnRueckgabe->setHidden(false);
     } 
     else {
         qWarning() << "⚠ Unbekannte Rolle:" << role;
@@ -576,7 +582,7 @@ void FrmMain::on_btnAusleihen_clicked(){
 // ============================================
 // AUSLEIHE: Gerät zurückgeben (Mitarbeiter + Admin)
 // ============================================
-void FrmMain::on_btnRueckgaba_clicked(){
+void FrmMain::on_btnRueckgabe_clicked(){
     // Nur Mitarbeiter und Admin dürfen Rückgaben durchführen
     if(m_role.toLower() == "nutzer"){
         QMessageBox::warning(this, "Zugriff verweigert", "Nur Mitarbeiter oder Administratoren dürfen Rückgaben durchführen.");
@@ -629,3 +635,6 @@ void FrmMain::on_btnRueckgaba_clicked(){
         refreshAusleihe();
     }
 }
+
+
+

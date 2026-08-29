@@ -1,33 +1,34 @@
 #include "logindialog.h"
 #include "ui_logindialog.h"
+
 #include <QSqlQuery>
+#include <QSqlRecord>
+#include <QSqlError>
+
 #include <QMessageBox>
 #include <QCryptographicHash>
+#include <QPushButton>
+
 #include "authutils.h"
 #include "registrationdialog.h"
-#include <QPushButton>
 
 static QString computeHash(const QString &salt, const QString &password){
     QByteArray key = AuthUtils::pbkdf2_hmac_sha256(password.toUtf8(), salt.toUtf8(), 100000, 32);
     return AuthUtils::toHex(key);
 }
 
-LoginDialog::LoginDialog(QWidget *parent): QDialog(parent), ui(new Ui::LoginDialog){
+LoginDialog::LoginDialog(QWidget *parent)
+    : QDialog(parent)
+    , ui(new Ui::LoginDialog)
+{
     ui->setupUi(this);
-
-    // add a Register button next to existing cancel/login if possible
-    QPushButton *btnRegister = new QPushButton("Registrieren", this);
-    btnRegister->setObjectName("btnRegister");
-    // try to insert next to btnCancel if present
-    if(auto *btnCancel = findChild<QPushButton*>("btnCancel")){
-        if(btnCancel->parentWidget() && btnCancel->parentWidget()->layout()){
-            btnCancel->parentWidget()->layout()->addWidget(btnRegister);
-        }
-    }
-    connect(btnRegister, &QPushButton::clicked, this, &LoginDialog::on_btnRegister_clicked);
 }
 
-LoginDialog::~LoginDialog(){ delete ui; }
+LoginDialog::~LoginDialog()
+{
+    delete ui;
+}
+//LoginDialog::~LoginDialog(){ delete ui; }
 
 void LoginDialog::on_btnCancel_clicked(){ reject(); }
 
@@ -60,7 +61,3 @@ void LoginDialog::on_btnLogin_clicked(){
     QMessageBox::warning(this, "Login fehlgeschlagen", "Benutzername oder Passwort falsch");
 }
 
-void LoginDialog::on_btnRegister_clicked(){
-    RegistrationDialog dlg(this);
-    dlg.exec();
-}
