@@ -1,4 +1,4 @@
-# SmartDevice - Geräteverwaltung (MVP)
+# SmartDevice - Geräteverwaltung (MVC)
 
 Dieses Repository enthält die C++/Qt Widgets Implementierung für die Geräteverwaltung.
 
